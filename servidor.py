@@ -1,58 +1,53 @@
+
 import socket
 import json
-import ssl
 from statistics import mean
 
-class Server:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+class Servidor:
+    def __init__(self, endereco, porta):
+        self.endereco = endereco
+        self.porta = porta
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((self.host, self.port))
+        self.socket.bind((self.endereco, self.porta))
 
-    def listen(self):
-        """ Escuta por conexões """
+    def escutar(self):
         self.socket.listen(5)
-        print(f"Servidor ouvindo na porta {self.port}...")
-        
+        print(f"Servidor ouvindo na porta {self.porta}...")
+
         while True:
-            client_socket, client_address = self.socket.accept()
-            print(f"Conexão recebida de {client_address}")
-            
-            # Criptografia SSL
-            secure_client_socket = self.context.wrap_socket(client_socket, server_side=True)
-            
+            socket_cliente, endereco_cliente = self.socket.accept()
+            print(f"Conexão recebida de {endereco_cliente}")
+
             # Recebe os dados do cliente
-            data = secure_client_socket.recv(1024)
-            if data:
-                self.process_data(data, secure_client_socket)
-            secure_client_socket.close()
+            dados = socket_cliente.recv(1024)
+            if dados:
+                self.processar_dados(dados, socket_cliente)
+            socket_cliente.close()
 
-    def process_data(self, data, client_socket):
+    def processar_dados(self, dados, socket_cliente):
         """ Processa os dados recebidos do cliente """
-        data = json.loads(data.decode())
-        
+        dados = json.loads(dados.decode())
+
         # Calculando a média dos valores recebidos
-        cpu_count = data["cpu_count"]
-        ram_free = data["ram_free"] / (1024 * 1024 * 1024)  # Convertendo de bytes para GB
-        disk_free = data["disk_free"] / (1024 * 1024 * 1024)  # Convertendo de bytes para GB
-        temperature = data["temperature"]
+        quantidade_cpu = dados["quantidade_cpu"]
+        ram_livre = dados["ram_livre"] / (1024 * 1024 * 1024)  # Convertendo de bytes para GB
+        disco_livre = dados["disco_livre"] / (1024 * 1024 * 1024)  # Convertendo de bytes para GB
+        temperatura = dados["temperatura"] if dados["temperatura"] is not None else 0
 
-        average = mean([cpu_count, ram_free, disk_free, temperature if temperature else 0])
+        media = mean([quantidade_cpu, ram_livre, disco_livre, temperatura])
 
-        # Enviando a resposta de volta ao cliente
-        response = {
-            "average": average,
-            "details": {
-                "cpu_count": cpu_count,
-                "ram_free": ram_free,
-                "disk_free": disk_free,
-                "temperature": temperature
+
+        resposta = {
+            "media": media,
+            "detalhes": {
+                "quantidade_cpu": quantidade_cpu,
+                "ram_livre": ram_livre,
+                "disco_livre": disco_livre,
+                "temperatura": temperatura
             }
         }
-        client_socket.sendall(json.dumps(response).encode())
+        socket_cliente.sendall(json.dumps(resposta).encode())
 
 if __name__ == "__main__":
-    server = Server('127.0.0.1', 65433)
-    server.listen()
+    servidor = Servidor('127.0.0.1', 65432)
+    servidor.escutar()
