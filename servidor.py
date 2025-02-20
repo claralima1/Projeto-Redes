@@ -2,7 +2,7 @@ import socket
 import os
 
 class Servidor:
-    def __init__(self, host="0.0.0.0", porta=5000):
+    def __init__(self, host, porta):
         self.host = host
         self.porta = porta
 
@@ -13,7 +13,7 @@ class Servidor:
         """Inicia o servidor e aguarda conexões."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as servidor:
             servidor.bind((self.host, self.porta))
-            servidor.listen(5)
+            servidor.listen(5) #quantidade máxima de conexões permitidas
             print(f"Servidor aguardando conexões em {self.host}:{self.porta}...")
 
             while True:
@@ -26,5 +26,5 @@ class Servidor:
                 conexao.close()
 
 
-servidor = Servidor()
+servidor = Servidor("0.0.0.0",5000 )
 servidor.iniciar()

@@ -1,7 +1,7 @@
 import socket
 
 class Cliente:
-    def __init__(self, host="127.0.0.1", porta=5000):
+    def __init__(self, host, porta):
         self.host = host
         self.porta = porta
 
@@ -13,5 +13,5 @@ class Cliente:
             print(f"Número de CPUs do servidor: {num_cpus}")
 
 
-cliente = Cliente()
+cliente = Cliente("127.0.0.1", 5000)
 cliente.conectar_servidor()
