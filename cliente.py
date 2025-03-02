@@ -1,17 +1,16 @@
 import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((socket.gethostname(), 5551))
+#full_msg = ''
 
-class Cliente:
-    def __init__(self, host, porta):
-        self.host = host
-        self.porta = porta
+cmd = input("Insira o comando: ")
 
-    def conectar_servidor(self):
-        """Conecta-se ao servidor e recebe o número de CPUs."""
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
-            cliente.connect((self.host, self.porta))
-            num_cpus = cliente.recv(1024).decode()
-            print(f"Número de CPUs do servidor: {num_cpus}")
+s.send(cmd.encode("utf-8"))
 
+#while True:
+msg = s.recv(1024)
+#    if len(msg) <= 0:
+#        break
+#    full_msg += msg.decode("utf-8")
 
-cliente = Cliente("127.0.0.1", 5000)
-cliente.conectar_servidor()
+print("Mensagem:", msg.decode("utf-8"))
