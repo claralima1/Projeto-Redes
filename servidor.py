@@ -6,6 +6,7 @@ class Servidor:
         self.host = host
         self.port = port
         self.servidor_socket = None
+        self.computadores_conectados = {}  # Dicionário para armazenar computadores
 
     def formatar_memoria(self, memoria):
         """Formata as informações de memória RAM"""
@@ -22,6 +23,32 @@ class Servidor:
         except Exception as e:
             return f"Erro ao acessar o disco: {e}"
 
+    def listar_computadores(self):
+        """Lista todos os computadores conectados."""
+        if not self.computadores_conectados:
+            return "Nenhum computador conectado."
+
+        lista = "Computadores conectados:\n"
+        for ip, info in self.computadores_conectados.items():
+            lista += f"- {ip} (Porta: {info['port']})\n"
+        return lista
+
+    def detalhar_computador(self, ip):
+        """Mostra detalhes de um computador específico."""
+        if ip not in self.computadores_conectados:
+            return f"Computador com IP {ip} não encontrado."
+
+        info = self.computadores_conectados[ip]
+        detalhes = (
+            f"Detalhes do computador {ip}:\n"
+            f"Host: {info['host']}\n"
+            f"Porta: {info['port']}\n"
+            f"RAM: {info['ram']}\n"
+            f"CPU: {info['cpu']}\n"
+            f"Disco: {info['disco']}"
+        )
+        return detalhes
+
     def iniciar_servidor(self):
         """Inicia o servidor e aguarda conexões"""
         self.servidor_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -33,7 +60,17 @@ class Servidor:
             try:
                 cliente_socket, endereco = self.servidor_socket.accept()
                 print(f"Conexão de {endereco} estabelecida.")
-                
+
+                # Adiciona o computador à lista de conectados
+                ip = endereco[0]
+                self.computadores_conectados[ip] = {
+                    "host": ip,
+                    "port": endereco[1],
+                    "ram": self.formatar_memoria(psutil.virtual_memory()),
+                    "cpu": f"Cores físicos: {psutil.cpu_count(logical=False)}, Cores lógicos: {psutil.cpu_count(logical=True)}",
+                    "disco": self.formatar_disco()
+                }
+
                 mensagem = cliente_socket.recv(1024).decode("utf-8").strip()
                 print(f"Comando recebido: {mensagem}")
 
@@ -43,6 +80,8 @@ class Servidor:
                         "/ram - Mostra a quantidade total, usada e livre de memória RAM\n"
                         "/hd - Mostra o espaço do disco\n"
                         "/cpu - Mostra a quantidade de processadores\n"
+                        "/listar - Lista todos os computadores conectados\n"
+                        "/detalhar <IP> - Mostra detalhes de um computador específico\n"
                         "/off - Desliga o servidor"
                     )
 
@@ -54,6 +93,16 @@ class Servidor:
 
                 elif mensagem == "/cpu":
                     resposta = f"Cores físicos: {psutil.cpu_count(logical=False)}, Cores lógicos: {psutil.cpu_count(logical=True)}"
+
+                elif mensagem == "/listar":
+                    resposta = self.listar_computadores()
+
+                elif mensagem.startswith("/detalhar"):
+                    try:
+                        ip = mensagem.split(" ")[1]  # Extrai o IP do comando
+                        resposta = self.detalhar_computador(ip)
+                    except IndexError:
+                        resposta = "Uso correto: /detalhar <IP>"
 
                 elif mensagem == "/off":
                     resposta = "Desligando o servidor..."
