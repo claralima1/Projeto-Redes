@@ -1,16 +1,34 @@
 import socket
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((socket.gethostname(), 5551))
-#full_msg = ''
+import psutil
 
-cmd = input("Insira o comando: ")
+class Cliente:
+    def __init__(self, server_host, server_port):
+        self.server_host = server_host
+        self.server_port = server_port
 
-s.send(cmd.encode("utf-8"))
+    def coletar_dados(self):
+        """Coleta os dados do sistema."""
+        memoria = psutil.virtual_memory()
+        disco = psutil.disk_usage("C:\\")
 
-#while True:
-msg = s.recv(1024)
-#    if len(msg) <= 0:
-#        break
-#    full_msg += msg.decode("utf-8")
+        return {
+            "host": socket.gethostname(),
+            "cpu": psutil.cpu_count(logical=False),  # Cores físicos
+            "ram": memoria.available // (1024 ** 2),  # Memória livre em MB
+            "disco": disco.free // (1024 ** 3)  # Espaço livre em GB
+        }
 
-print("Mensagem:", msg.decode("utf-8"))
+    def enviar_dados(self):
+        """Envia os dados coletados para o servidor."""
+        dados = self.coletar_dados()
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente_socket:
+            cliente_socket.connect((self.server_host, self.server_port))
+            cliente_socket.send(str(dados).encode())  # Envia os dados como string
+            resposta = cliente_socket.recv(1024)
+            print(resposta.decode())
+
+
+# Inicia o cliente
+cliente = Cliente('127.0.0.1', 5551)
+cliente.enviar_dados()
