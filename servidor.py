@@ -9,39 +9,36 @@ class Servidor:
         self.computadores_conectados = {}  # Armazena em um dicionário os dados dos clientes (A chave é o IP do cliente)
         self.executando = True  # Controla se o servidor está em execução
 
-    #####################################################################################
-    #VERIFICAR COMO É PRA SER FEITA A MÉDIA DOS DADOS
 
     def calcular_media(self):
         if not self.computadores_conectados: # Verifica se há clientes conectados
             return "Nenhum computador conectado."
 
-        total_cpu = sum(info['cpu'] for info in self.computadores_conectados.values())
+        total_cpu = sum(info['cpu'] for info in self.computadores_conectados.values()) #soma o valor de uso da cpu de todos os conputadores conectados
         total_ram = sum(info['ram'] for info in self.computadores_conectados.values())
         total_disco = sum(info['disco'] for info in self.computadores_conectados.values())
-        count = len(self.computadores_conectados)
+        count = len(self.computadores_conectados) #pega a quantidade de conputadores conectados
 
         return {
             "media_cpu": total_cpu / count,
             "media_ram": total_ram / count,
             "media_disco": total_disco / count
         }
-    #####################################################################################
 
     def listar_computadores(self):
         if not self.computadores_conectados: # Verifica se há clientes conectados
             return "Nenhum computador conectado"
 
         lista = "Computadores conectados:\n" 
-        for ip, info in self.computadores_conectados.items(): # Itera sobre o dicionário
-            lista += f"- {ip} (Host: {info['host']})\n"  # 
+        for ip, info in self.computadores_conectados.items(): # Percorre o dicionário e retorna o ip e o host dos computadores
+            lista += f"- {ip} (Host: {info['host']})\n"
         return lista
 
     def detalhar_computador(self, ip):
-        if ip not in self.computadores_conectados:
+        if ip not in self.computadores_conectados: 
             return f"Computador com IP {ip} não encontrado"
 
-        info = self.computadores_conectados[ip]
+        info = self.computadores_conectados[ip] #para exibir os dados de um determinado computador
         detalhes = (
             f"Detalhes do computador {ip}:\n"
             f"Host: {info['host']}\n"
@@ -51,12 +48,12 @@ class Servidor:
         )
         return detalhes
 
-    def handle_cliente(self, cliente_socket, endereco):
+    def handle_cliente(self, cliente_socket, endereco): #recebe um cliente conectado
         try:
             print(f"Conexão de {endereco} estabelecida.")
 
             # Recebe os dados do cliente
-            dados = cliente_socket.recv(1024).decode()
+            dados = cliente_socket.recv(1024).decode() #"decode()" converte os bytes para texto
             dados = eval(dados)  # Converte a string para dicionário
 
             # Armazena os dados no dicionário
